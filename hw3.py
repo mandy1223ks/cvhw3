@@ -16,6 +16,9 @@ from torchvision import transforms, models, datasets
 from tqdm import tqdm
 import pdb
 
+os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"  # see issue #152
+os.environ["CUDA_VISIBLE_DEVICES"] = "0,1,2"
+
 # %matplotlib inline
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 # print(f'Using {device} device')
@@ -102,7 +105,9 @@ def train_test_loop(train_dataloader, valid_dataloader, N, PRETRAIN):
     return acc
 
 
-    
+# PRETRAIN = "IMAGENET1K V1"    
+PRETRAIN = False
+
 set_all_seed(123)
 batch_size = 256
 
@@ -128,12 +133,12 @@ half_train_sampler = RandomSampler(train_dataset, num_samples=len(train_dataset)
 sixteenth_train_dataloader = DataLoader(train_dataset, batch_size=batch_size, sampler=sixteenth_train_sampler)
 half_train_dataloader = DataLoader(train_dataset, batch_size=batch_size, sampler=half_train_sampler)
 
-acc_resnet50_1_nw = train_test_loop(train_dataloader, valid_dataloader, 50, False)
-acc_resnet18_1_nw = train_test_loop(train_dataloader, valid_dataloader, 18, False)
-acc_resnet50_05_nw = train_test_loop(half_train_dataloader, valid_dataloader, 50, False)
-acc_resnet18_05_nw = train_test_loop(half_train_dataloader, valid_dataloader, 18, False)
-acc_resnet50_016_nw = train_test_loop(half_train_dataloader, valid_dataloader, 50, False)
-acc_resnet18_016_nw = train_test_loop(half_train_dataloader, valid_dataloader, 18, False)
+acc_resnet50_1_nw = train_test_loop(train_dataloader, valid_dataloader, 50, PRETRAIN)
+acc_resnet18_1_nw = train_test_loop(train_dataloader, valid_dataloader, 18, PRETRAIN)
+acc_resnet50_05_nw = train_test_loop(half_train_dataloader, valid_dataloader, 50, PRETRAIN)
+acc_resnet18_05_nw = train_test_loop(half_train_dataloader, valid_dataloader, 18, PRETRAIN)
+acc_resnet50_016_nw = train_test_loop(half_train_dataloader, valid_dataloader, 50, PRETRAIN)
+acc_resnet18_016_nw = train_test_loop(half_train_dataloader, valid_dataloader, 18, PRETRAIN)
 
 x = np.array([1/16, 1/2, 1])
 y_s = np.array([acc_resnet18_016_nw, acc_resnet18_05_nw, acc_resnet18_1_nw])
@@ -144,5 +149,6 @@ plt.title('Dataset Size vs Accuracy')
 plt.plot(x, y_s, '-o',color='b', label='Small Model')
 plt.plot(x, y_b, '-o',color='r', label='Big Model')
 # plt.grid()
+plt.legend()
 plt.show()
-plt.savefig('result_2.png')
+plt.savefig('result_4.png')
